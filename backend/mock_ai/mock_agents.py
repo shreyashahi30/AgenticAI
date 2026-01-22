@@ -26,18 +26,46 @@ def skill_gap_agent(student_skills, required_skills):
 
 
 def learning_path_agent(skill_gap):
-    roadmap = []
-    day = 1
+    roadmap = {
+        "30_days": [],
+        "60_days": [],
+        "90_days": []
+    }
+
     for skill in skill_gap["missing_skills"]:
-        roadmap.append({
-            "day": day,
+        roadmap["30_days"].append({
             "skill": skill,
-            "task": f"Learn basics of {skill}",
-            "practice": f"Build a mini project using {skill}"
+            "goal": f"Learn basics of {skill}",
+            "resources": [
+                f"YouTube: {skill} tutorial",
+                f"Coursera: Intro to {skill}"
+            ],
+            "project": f"Mini project using {skill}"
         })
-        day += 2
+
+        roadmap["60_days"].append({
+            "skill": skill,
+            "goal": f"Build intermediate projects with {skill}",
+            "resources": [
+                f"Official docs of {skill}",
+                "Medium tutorials"
+            ],
+            "project": f"Intermediate project using {skill}"
+        })
+
+        roadmap["90_days"].append({
+            "skill": skill,
+            "goal": f"Master {skill} for job readiness",
+            "resources": [
+                "System design practice",
+                "Mock interviews"
+            ],
+            "project": f"Capstone project using {skill}"
+        })
+
+    readiness_score = max(20, 100 - len(skill_gap["missing_skills"]) * 15)
 
     return {
-        "estimated_days": len(roadmap) * 2,
-        "roadmap": roadmap
+        "roadmap": roadmap,
+        "career_readiness_score": readiness_score
     }
