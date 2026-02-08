@@ -30,8 +30,8 @@ app = FastAPI(title="Agentic AI Skill Gap & Career Planner")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000","https://shreyashahi30.github.io"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
