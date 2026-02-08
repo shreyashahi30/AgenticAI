@@ -66,4 +66,22 @@ This project uses a multi-agent pipeline:
 ---
 
 ## 📂 Project Structure
-
+AgenticAI/
+│
+├── backend/
+│ ├── main.py # FastAPI entry point
+│ ├── ai/
+│ │ ├── agents.py # All AI agent logic
+│ │ ├── prompts.py # Prompt templates
+│ │ ├── schemas.py # Pydantic response schemas
+│ │ └── llm_client.py # Groq API client
+│ ├── utils/
+│ │ └── resume_parser.py # PDF resume text extraction
+│ └── database.py # SQLite DB + models
+│
+├── frontend/
+│ ├── src/
+│ │ └── App.js # Main dashboard UI
+│ └── package.json
+│
+└── README.md
