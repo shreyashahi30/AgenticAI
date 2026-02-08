@@ -629,7 +629,7 @@ const App = () => {
                 </h1>
               </div>
               <p className="text-gray-600 text-sm md:text-base ml-15">
-                🎯 Target Role: <span className="font-semibold text-gray-900">{analysisData?.target_role}</span>
+                🎯 Target Role: <span>{analysisData?.market_profile?.trend}</span>
               </p>
             </div>
             <button
@@ -649,11 +649,15 @@ const App = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Left Column - Metrics */}
           <div className="lg:col-span-1 space-y-6">
-            <ReadinessScore score={analysisData?.readiness_score || 0} />
-            <SkillGap
-              missingSkills={analysisData?.missing_skills || []}
-              currentSkills={analysisData?.current_skills || []}
+            <ReadinessScore
+               score={analysisData?.roadmap?.career_readiness_score || 0}
             />
+
+
+<SkillGap
+  missingSkills={analysisData?.skill_gap?.missing_skills || []}
+  currentSkills={analysisData?.student_profile?.skills || []}
+/>
             <ProgressTracker
               userId={userId}
               progress={progressData}

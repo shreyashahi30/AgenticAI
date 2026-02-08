@@ -49,30 +49,52 @@ Market skills: {market_skills}
 """
 
 
-def learning_path_prompt(skill_gap) -> str:
+def learning_path_prompt(skill_gap_data):
     return f"""
-You are an expert career coach AI.
+You are an expert AI career mentor.
 
-STRICT RULES:
-- Output ONLY valid JSON
-- Do NOT use markdown
-- Do NOT use ```json
-- Do NOT explain anything
-- Do NOT add text outside JSON
-- Every string must be quoted
-- No trailing commas
+The user is missing these skills:
 
-Format:
+{skill_gap_data}
+
+Generate a structured roadmap grouped into 30/60/90 days.
+
+Return STRICT JSON ONLY:
 
 {{
-  "roadmap": [
-    {{"week": 1, "skill": "Docker", "task": "Learn Docker basics"}},
-    {{"week": 2, "skill": "Docker", "task": "Build containers"}},
-    {{"week": 3, "skill": "Kubernetes", "task": "Deploy app"}}
-  ],
-  "career_readiness_score": 70
+  "roadmap": {{
+    "30": [
+      {{
+        "skill": "Skill name",
+        "goal": "What to learn",
+        "resources": "Courses/docs",
+        "mini_project": "Mini project",
+        "completed": false
+      }}
+    ],
+    "60": [
+      {{
+        "skill": "...",
+        "goal": "...",
+        "resources": "...",
+        "mini_project": "...",
+        "completed": false
+      }}
+    ],
+    "90": [
+      {{
+        "skill": "...",
+        "goal": "...",
+        "resources": "...",
+        "mini_project": "...",
+        "completed": false
+      }}
+    ]
+  }}
 }}
 
-Skill gap data:
-{skill_gap}
+Rules:
+- No markdown
+- No explanation
+- JSON only
 """

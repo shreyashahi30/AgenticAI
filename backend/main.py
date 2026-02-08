@@ -74,7 +74,8 @@ async def upload_resume(
         )
 
         logger.info("Calling learning_path_agent")
-        roadmap = learning_path_agent(skill_gap)
+        roadmap = learning_path_agent(skill_gap.missing_skills)
+
 
         # 3. Save to DB
         db = SessionLocal()
@@ -93,17 +94,17 @@ async def upload_resume(
         logger.info(f"User {user.id} saved successfully")
 
         return {
-             "user_id": user.id,
-             "target_role": target_role,
-             "current_skills": student_profile.skills,
-             "missing_skills": skill_gap.missing_skills,
-             "readiness_score": roadmap.career_readiness_score if hasattr(roadmap, "career_readiness_score") else 30,
-             "roadmap": {
-                 "30": roadmap.roadmap[:4],
-                 "60": roadmap.roadmap[4:8],
-                 "90": roadmap.roadmap[8:12],
-                }
-        }
+    "user_id": user.id,
+    "student_profile": student_profile.model_dump(),
+    "market_profile": market_profile.model_dump(),
+    "skill_gap": skill_gap.model_dump(),
+
+    # FIX: roadmap should be roadmap["30"], roadmap["60"], roadmap["90"]
+    "roadmap": roadmap.roadmap,
+
+    "message": "Full AI pipeline executed successfully"
+}
+
     
     except Exception as e:
         logger.error(f"AI Pipeline failed: {str(e)}")

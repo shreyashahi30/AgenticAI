@@ -110,20 +110,16 @@ def skill_gap_agent(user_skills, market_skills) -> SkillGapProfile:
 # ---------------- LEARNING PATH AGENT ----------------
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def learning_path_agent(skill_gap_data) -> LearningPathProfile:
-    # Convert Pydantic model → dict for prompt
-    skill_gap_dict = skill_gap_data.model_dump()
-
-    prompt = learning_path_prompt(skill_gap_dict)
+def learning_path_agent(missing_skills) -> LearningPathProfile:
+    prompt = learning_path_prompt(missing_skills)
 
     logger.info("Learning path agent: sending prompt")
-
     raw = call_llm(prompt)
-    logger.info(f"Learning path raw response (first 200 chars): {raw[:200]}")
 
     try:
         data = extract_json(raw)
         return LearningPathProfile(**data)
+
     except Exception as e:
         logger.error(f"Learning path JSON error: {e}")
         raise ValueError("Invalid AI output. Retrying...")
