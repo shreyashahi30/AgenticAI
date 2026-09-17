@@ -35,26 +35,30 @@ logger = logging.getLogger(__name__)
 
 def parse_json_response(raw: str):
     """
-    Parse the JSON response returned by Groq.
+    Parse JSON returned by Groq.
 
-    JSON Object Mode is enabled in llm_client.py,
-    so the response should already be valid JSON.
+    Groq JSON Object Mode should return valid JSON.
+    Pydantic models are used afterwards to validate
+    the structure.
     """
 
     if not raw:
-        raise ValueError("LLM returned an empty response")
+        raise ValueError(
+            "LLM returned an empty response"
+        )
 
     try:
         return json.loads(raw)
 
     except json.JSONDecodeError as e:
+
         logger.error(
             "Failed to parse LLM response as JSON: %s",
             e
         )
 
         logger.error(
-            "Raw LLM response: %s",
+            "Raw response: %s",
             raw[:1000]
         )
 
@@ -77,7 +81,9 @@ def skill_assessment_agent(
 
     resume_text = resume_text[:4000]
 
-    prompt = resume_skill_prompt(resume_text)
+    prompt = resume_skill_prompt(
+        resume_text
+    )
 
     logger.info(
         "Calling skill assessment agent"
@@ -96,6 +102,7 @@ def skill_assessment_agent(
     )
 
     try:
+
         data = parse_json_response(raw)
 
         result = SkillProfile(**data)
@@ -130,7 +137,9 @@ def market_demand_agent(
     target_role: str
 ) -> MarketProfile:
 
-    prompt = market_demand_prompt(target_role)
+    prompt = market_demand_prompt(
+        target_role
+    )
 
     logger.info(
         "Calling market demand agent"
@@ -144,6 +153,7 @@ def market_demand_agent(
     )
 
     try:
+
         data = parse_json_response(raw)
 
         result = MarketProfile(**data)
@@ -196,6 +206,7 @@ def skill_gap_agent(
     )
 
     try:
+
         data = parse_json_response(raw)
 
         result = SkillGapProfile(**data)
@@ -246,11 +257,12 @@ def learning_path_agent(
     raw = call_llm(prompt)
 
     logger.info(
-        "Learning path raw response: %s",
+        "Learning path response: %s",
         raw[:1000]
     )
 
     try:
+
         data = parse_json_response(raw)
 
         result = LearningPathProfile(**data)
