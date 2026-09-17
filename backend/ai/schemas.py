@@ -1,28 +1,41 @@
-from pydantic import BaseModel
 from typing import List, Dict
 
+from pydantic import BaseModel
 
-# ---------------- SKILL PROFILE ----------------
+
+# =========================================================
+# SKILL PROFILE
+# =========================================================
+
 class SkillProfile(BaseModel):
     skills: List[str]
     experience_level: str
     summary: str
 
 
-# ---------------- MARKET PROFILE ----------------
+# =========================================================
+# MARKET PROFILE
+# =========================================================
+
 class MarketProfile(BaseModel):
     required_skills: List[str]
     trend: str
     summary: str
 
 
-# ---------------- SKILL GAP PROFILE ----------------
+# =========================================================
+# SKILL GAP PROFILE
+# =========================================================
+
 class SkillGapProfile(BaseModel):
     missing_skills: List[str]
     priority: str
 
 
-# ---------------- ROADMAP ITEM ----------------
+# =========================================================
+# ROADMAP ITEM
+# =========================================================
+
 class RoadmapItem(BaseModel):
     skill: str
     goal: str
@@ -31,6 +44,9 @@ class RoadmapItem(BaseModel):
     completed: bool = False
 
 
-# ---------------- LEARNING PATH PROFILE ----------------
+# =========================================================
+# LEARNING PATH PROFILE
+# =========================================================
+
 class LearningPathProfile(BaseModel):
     roadmap: Dict[str, List[RoadmapItem]]
