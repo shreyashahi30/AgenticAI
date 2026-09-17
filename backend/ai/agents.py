@@ -1,15 +1,17 @@
 import json
 import logging
-import re
+
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from backend.ai.llm_client import call_llm
+
 from backend.ai.prompts import (
     resume_skill_prompt,
     market_demand_prompt,
     skill_gap_prompt,
     learning_path_prompt
 )
+
 from backend.ai.schemas import (
     SkillProfile,
     MarketProfile,
@@ -17,109 +19,255 @@ from backend.ai.schemas import (
     LearningPathProfile
 )
 
+
+# =========================================================
+# LOGGING
+# =========================================================
+
 logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 
-# ---------------- JSON EXTRACTION ----------------
+# =========================================================
+# JSON PARSING
+# =========================================================
 
-def extract_json(raw: str):
+def parse_json_response(raw: str):
     """
-    Robust JSON extractor from LLM output.
-    Handles:
-    - ```json code blocks
-    - Extra text
-    - Newlines
+    Parse the JSON response returned by Groq.
+
+    JSON Object Mode is enabled in llm_client.py,
+    so the response should already be valid JSON.
     """
-    logger.info("Extracting JSON from LLM response")
 
-    # Remove markdown fences
-    raw = re.sub(r"```json", "", raw, flags=re.IGNORECASE)
-    raw = re.sub(r"```", "", raw)
+    if not raw:
+        raise ValueError("LLM returned an empty response")
 
-    # Extract JSON object
-    match = re.search(r"\{.*\}", raw, re.DOTALL)
-    if not match:
-        raise ValueError("No JSON object found in LLM response")
+    try:
+        return json.loads(raw)
 
-    json_text = match.group(0)
-    logger.info(f"Extracted JSON length: {len(json_text)} chars")
+    except json.JSONDecodeError as e:
+        logger.error(
+            "Failed to parse LLM response as JSON: %s",
+            e
+        )
 
-    return json.loads(json_text)
+        logger.error(
+            "Raw LLM response: %s",
+            raw[:1000]
+        )
+
+        raise ValueError(
+            "LLM returned invalid JSON"
+        ) from e
 
 
-# ---------------- SKILL ASSESSMENT AGENT ----------------
+# =========================================================
+# SKILL ASSESSMENT AGENT
+# =========================================================
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def skill_assessment_agent(resume_text: str) -> SkillProfile:
-    resume_text = resume_text[:4000]  # cost control
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(2)
+)
+def skill_assessment_agent(
+    resume_text: str
+) -> SkillProfile:
+
+    resume_text = resume_text[:4000]
+
     prompt = resume_skill_prompt(resume_text)
 
-    logger.info("Skill agent: sending prompt")
-    logger.info(f"Prompt size: {len(prompt)} chars")
+    logger.info(
+        "Calling skill assessment agent"
+    )
+
+    logger.info(
+        "Skill prompt size: %s chars",
+        len(prompt)
+    )
 
     raw = call_llm(prompt)
-    logger.info(f"Skill agent raw response (first 200 chars): {raw[:200]}")
+
+    logger.info(
+        "Skill agent response: %s",
+        raw[:500]
+    )
 
     try:
-        data = extract_json(raw)
-        return SkillProfile(**data)
+        data = parse_json_response(raw)
+
+        result = SkillProfile(**data)
+
+        logger.info(
+            "Skill assessment completed successfully"
+        )
+
+        return result
+
     except Exception as e:
-        logger.error(f"Skill agent JSON error: {e}")
-        raise ValueError("Invalid AI output. Retrying...")
+
+        logger.error(
+            "Skill agent error: %s",
+            e
+        )
+
+        raise ValueError(
+            "Invalid skill assessment response"
+        ) from e
 
 
-# ---------------- MARKET DEMAND AGENT ----------------
+# =========================================================
+# MARKET DEMAND AGENT
+# =========================================================
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def market_demand_agent(target_role: str) -> MarketProfile:
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(2)
+)
+def market_demand_agent(
+    target_role: str
+) -> MarketProfile:
+
     prompt = market_demand_prompt(target_role)
 
-    logger.info("Market agent: sending prompt")
+    logger.info(
+        "Calling market demand agent"
+    )
 
     raw = call_llm(prompt)
-    logger.info(f"Market agent raw response (first 200 chars): {raw[:200]}")
+
+    logger.info(
+        "Market agent response: %s",
+        raw[:500]
+    )
 
     try:
-        data = extract_json(raw)
-        return MarketProfile(**data)
+        data = parse_json_response(raw)
+
+        result = MarketProfile(**data)
+
+        logger.info(
+            "Market demand analysis completed successfully"
+        )
+
+        return result
+
     except Exception as e:
-        logger.error(f"Market agent JSON error: {e}")
-        raise ValueError("Invalid AI output. Retrying...")
+
+        logger.error(
+            "Market agent error: %s",
+            e
+        )
+
+        raise ValueError(
+            "Invalid market analysis response"
+        ) from e
 
 
-# ---------------- SKILL GAP AGENT ----------------
+# =========================================================
+# SKILL GAP AGENT
+# =========================================================
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def skill_gap_agent(user_skills, market_skills) -> SkillGapProfile:
-    prompt = skill_gap_prompt(user_skills, market_skills)
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(2)
+)
+def skill_gap_agent(
+    user_skills,
+    market_skills
+) -> SkillGapProfile:
 
-    logger.info("Skill gap agent: sending prompt")
+    prompt = skill_gap_prompt(
+        user_skills,
+        market_skills
+    )
+
+    logger.info(
+        "Calling skill gap agent"
+    )
 
     raw = call_llm(prompt)
-    logger.info(f"Skill gap raw response (first 200 chars): {raw[:200]}")
+
+    logger.info(
+        "Skill gap agent response: %s",
+        raw[:500]
+    )
 
     try:
-        data = extract_json(raw)
-        return SkillGapProfile(**data)
+        data = parse_json_response(raw)
+
+        result = SkillGapProfile(**data)
+
+        logger.info(
+            "Skill gap analysis completed successfully"
+        )
+
+        return result
+
     except Exception as e:
-        logger.error(f"Skill gap JSON error: {e}")
-        raise ValueError("Invalid AI output. Retrying...")
+
+        logger.error(
+            "Skill gap agent error: %s",
+            e
+        )
+
+        raise ValueError(
+            "Invalid skill gap response"
+        ) from e
 
 
-# ---------------- LEARNING PATH AGENT ----------------
+# =========================================================
+# LEARNING PATH AGENT
+# =========================================================
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def learning_path_agent(missing_skills) -> LearningPathProfile:
-    prompt = learning_path_prompt(missing_skills)
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(2)
+)
+def learning_path_agent(
+    missing_skills
+) -> LearningPathProfile:
 
-    logger.info("Learning path agent: sending prompt")
+    prompt = learning_path_prompt(
+        missing_skills
+    )
+
+    logger.info(
+        "Calling learning path agent"
+    )
+
+    logger.info(
+        "Missing skills: %s",
+        missing_skills
+    )
+
     raw = call_llm(prompt)
 
+    logger.info(
+        "Learning path raw response: %s",
+        raw[:1000]
+    )
+
     try:
-        data = extract_json(raw)
-        return LearningPathProfile(**data)
+        data = parse_json_response(raw)
+
+        result = LearningPathProfile(**data)
+
+        logger.info(
+            "Learning path generated successfully"
+        )
+
+        return result
 
     except Exception as e:
-        logger.error(f"Learning path JSON error: {e}")
-        raise ValueError("Invalid AI output. Retrying...")
+
+        logger.error(
+            "Learning path agent error: %s",
+            e
+        )
+
+        raise ValueError(
+            "Invalid learning path response"
+        ) from e
